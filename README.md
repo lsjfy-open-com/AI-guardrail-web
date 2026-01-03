@@ -147,3 +147,6 @@ docker run -it \
 - `PATH`: 包含 MindSpore Lite 转换器和基准测试工具。
 - `LD_LIBRARY_PATH`: 包含 MindSpore Lite 运行时库。
 - `PS1`: 终端提示符设置为 `[user@Ai-guardrail dir]#`。
+## 已经上传制作好的镜像至SWR
+- 地址：sudo docker pull swr.cn-north-4.myhuaweicloud.com/ai-guardrail/ai-guardrail:{版本名称}
+- 已公开，若需登录，参照链接：https://support.huaweicloud.com/usermanual-swr/swr_01_0014.html
