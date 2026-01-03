@@ -1,3 +1,15 @@
+<div align="center">
+
+# AI Guardrail Docker Environment / 环境
+
+[English](#english) | [中文](#chinese)
+
+</div>
+
+---
+
+<a id="english"></a>
+
 # AI Guardrail Docker Environment
 
 This repository contains Docker build scripts for setting up the **AI Guardrail** environment on Huawei Ascend NPUs. It is built upon the Ascend MindIE base image and includes MindSpore Lite 2.6.0rc1 along with necessary Python dependencies.
@@ -64,3 +76,74 @@ The image automatically configures:
 - `PATH`: Includes MindSpore Lite converters and benchmark tools.
 - `LD_LIBRARY_PATH`: Includes MindSpore Lite runtime libraries.
 - `PS1`: Terminal prompt set to `[user@Ai-guardrail dir]#`.
+
+---
+
+<a id="chinese"></a>
+
+# AI Guardrail Docker 环境
+
+此仓库包含用于在华为 Ascend NPU 上设置 **AI Guardrail** 环境的 Docker 构建脚本。它基于 Ascend MindIE 基础镜像构建，并包含 MindSpore Lite 2.6.0rc1 以及必要的 Python 依赖项。
+
+## 📂 Dockerfiles
+
+| 文件 | 描述 |
+|------|-------------|
+| **`Ascend-MsLite2.6-Remote.dockerfile`** | **(推荐)** 直接从官方远程 AscendHub MindIE 镜像构建 (`swr.cn-south-1.myhuaweicloud.com/ascendhub/mindie:2.0.RC1...`)。 |
+| `Ascend-MsLite2.6-NewBase.dockerfile` | 基于本地可用的基础镜像构建。如果你已经 pull 了基础镜像，请使用此文件。 |
+| `Ascend-Ms2.6.dockerfile` | 旧版本。在 openEuler 上从零构建 CANN 环境。 |
+
+## 🛠️ 构建指南
+
+构建 Docker 镜像（使用推荐的远程基础镜像）：
+
+```bash
+# 适用于 ARM64 (Ascend 310P/910B 等)
+docker build --build-arg TARGETARCH=arm64 -t ai-guardrail:v1 -f Ascend-MsLite2.6-Remote.dockerfile .
+
+# 适用于 AMD64 (x86_64)
+docker build --build-arg TARGETARCH=amd64 -t ai-guardrail:v1 -f Ascend-MsLite2.6-Remote.dockerfile .
+```
+
+## 🚀 运行指南
+
+启动容器并启用 NPU 访问：
+
+```bash
+docker run -it \
+  --name Ai-guardrail \
+  --net=host \
+  --device=/dev/davinci0 \
+  --device=/dev/davinci_manager \
+  --device=/dev/devmm_svm \
+  --device=/dev/hisi_hdc \
+  -v /usr/local/Ascend/driver:/usr/local/Ascend/driver \
+  -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi \
+  ai-guardrail:v1 bash
+```
+
+## 📦 包含组件
+
+- **操作系统**: openEuler 24.03 LTS
+- **Python**: 3.11
+- **CANN**: 包含在基础镜像中 (Toolkit/NNRT)
+- **MindSpore Lite**: 2.6.0rc1 (工具 + Python 绑定)
+- **系统包**: `mysql-server`, `openssh-server`, `gcc`, `cmake` 等
+- **Python 包**:
+  - `gunicorn==23.0`
+  - `onnx==1.17`
+  - `gevent==24.2.1`
+  - `flask[async]==3.1.2`
+  - `multiprocess==0.70.16`
+  - `pymysql==1.1.2`
+  - `transformers==4.51`
+  - `onnxruntime==1.22.1`
+  - `scikit-learn==1.7.1`
+
+## 📝 环境变量
+
+镜像自动配置：
+- `LITE_HOME`: `/usr/local/mindspore-lite`
+- `PATH`: 包含 MindSpore Lite 转换器和基准测试工具。
+- `LD_LIBRARY_PATH`: 包含 MindSpore Lite 运行时库。
+- `PS1`: 终端提示符设置为 `[user@Ai-guardrail dir]#`。
