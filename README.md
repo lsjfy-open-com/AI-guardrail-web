@@ -77,6 +77,37 @@ The image automatically configures:
 - `LD_LIBRARY_PATH`: Includes MindSpore Lite runtime libraries.
 - `PS1`: Terminal prompt set to `[user@Ai-guardrail dir]#`.
 
+## 🐍 Entrypoint & Python Adaptation
+
+If you are using the image with the `start.sh` entrypoint (e.g., built with `Ascend-MsLite2.6-Entrypoint.dockerfile`), you can control the startup behavior using environment variables.
+
+**Docker Run Example:**
+
+```bash
+docker run -it \
+  -e SERVICE_PORT=8080 \
+  -e APP_ENTRYPOINT=/workspace/src/app.py \
+  ai-guardrail:entrypoint
+```
+
+**Python Code Hint:**
+
+Ensure your Python Flask application reads the `SERVICE_PORT` environment variable:
+
+```python
+import os
+from flask import Flask
+
+app = Flask(__name__)
+
+# ... your code ...
+
+if __name__ == '__main__':
+    # Read port from environment variable, default to 5000
+    port = int(os.environ.get('SERVICE_PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+```
+
 ---
 
 <a id="chinese"></a>
@@ -147,6 +178,36 @@ docker run -it \
 - `PATH`: 包含 MindSpore Lite 转换器和基准测试工具。
 - `LD_LIBRARY_PATH`: 包含 MindSpore Lite 运行时库。
 - `PS1`: 终端提示符设置为 `[user@Ai-guardrail dir]#`。
+## 🐍 入口点与 Python 适配
+
+如果您使用的是包含 `start.sh` 入口点的镜像（例如使用 `Ascend-MsLite2.6-Entrypoint.dockerfile` 构建），可以通过环境变量控制启动行为。
+
+**Docker 运行示例：**
+
+```bash
+docker run -it \
+  -e SERVICE_PORT=8080 \
+  -e APP_ENTRYPOINT=/workspace/src/app.py \
+  ai-guardrail:entrypoint
+```
+
+**Python 代码适配提示：**
+
+请确保您的 Python Flask 应用能够读取 `SERVICE_PORT` 环境变量：
+
+```python
+import os
+from flask import Flask
+
+app = Flask(__name__)
+
+# ... 您的代码 ...
+
+if __name__ == '__main__':
+    # 从环境变量读取端口，默认为 5000
+    port = int(os.environ.get('SERVICE_PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+```
 ## 已经上传制作好的镜像至SWR
 - 地址：sudo docker pull swr.cn-north-4.myhuaweicloud.com/ai-guardrail/ai-guardrail:{版本名称}
 - 已公开，若需登录，参照链接：https://support.huaweicloud.com/usermanual-swr/swr_01_0014.html
