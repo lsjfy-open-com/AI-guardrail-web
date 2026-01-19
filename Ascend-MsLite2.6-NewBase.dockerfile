@@ -93,5 +93,30 @@ LABEL app.name="Ai-guardrail"
 # 设置终端提示符显示 Ai-guardrail
 ENV PS1="[\u@Ai-guardrail \W]# "
 
+# ========== 9. 用户与权限配置 (Ascend最佳实践) ==========
+# 创建 modellite 用户 (UID 200)，将其加入 modelengine (GID 2000) 和 HwHiAiUser (GID 10003) 组
+# 确保在 Host 上的 10003 组权限能被继承，用于访问 Driver/Firmware/NPU
+
+# 注意：使用 || true 避免如果基础镜像中已存在该用户/组时构建失败
+RUN (groupadd -g 2000 modelengine || true) && \
+    (groupadd -g 10003 HwHiAiUser || true) && \
+    (id -u modellite &>/dev/null || useradd -u 200 -g modelengine -G HwHiAiUser -m -s /bin/bash modellite)
+
+# 修改关键目录权限，确保 modellite 用户可以访问和执行 installed 的软件
+# 1. /usr/local/Ascend (CANN/MindIE)
+# 2. /usr/local/mindspore-lite (Lite)
+# 3. /workspace (工作目录)
+RUN chown -R modellite:modelengine /workspace && \
+    chown -R modellite:modelengine /usr/local/mindspore-lite && \
+    # CANN/MindIE 目录通常通过组权限访问，或者直接赋予所有者权限
+    # 为了保险起见，确保 HwHiAiUser 组或者 modelengine 组有权访问
+    chmod -R go+rx /usr/local/Ascend
+
+# 切换到非 root 用户
+USER modellite
 WORKDIR /workspace
+
+# 更新环境变量 PS1 以显示新用户
+ENV PS1="[\u@Ai-guardrail \W]$ "
+
 CMD ["bash"]

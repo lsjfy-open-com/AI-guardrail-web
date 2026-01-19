@@ -119,8 +119,23 @@ RUN echo 'export ASCEND_HOME=/usr/local/Ascend' >> /etc/profile && \
     echo 'export PATH=/usr/local/mindspore-lite/tools/converter/converter:/usr/local/mindspore-lite/tools/benchmark:/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/nnrt/latest/bin:$PATH' >> /etc/profile && \
     echo 'export LD_LIBRARY_PATH=/usr/local/mindspore-lite/runtime/lib:/usr/local/mindspore-lite/tools/converter/lib:/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/runtime/lib64:/usr/local/Ascend/nnrt/latest/lib64:$LD_LIBRARY_PATH' >> /etc/profile
 
-# ========== 清理 ==========
-RUN dnf clean all && rm -rf /var/cache/dnf /tmp/*
+# ========== 容器标识与用户权限 ==========
+LABEL app.name="Ai-guardrail"
 
+# 创建 modellite 用户 (UID 200) 并加入 modelengine (GID 2000) 和 HwHiAiUser (GID 10003) 组
+RUN groupadd -g 2000 modelengine && \
+    groupadd -g 10003 HwHiAiUser && \
+    useradd -u 200 -g modelengine -G HwHiAiUser -m -s /bin/bash modellite
+
+# 修改权限
+RUN chown -R modellite:modelengine /usr/local/mindspore-lite && \
+    chmod -R go+rx /usr/local/Ascend && \
+    mkdir -p /workspace && chown -R modellite:modelengine /workspace
+
+# 环境变量设置 (ENV 全局生效，无需 export 到 profile)
+ENV PS1="[\u@Ai-guardrail \W]$ "
+
+# 切换用户
+USER modellite
 WORKDIR /workspace
 CMD ["bash"]
